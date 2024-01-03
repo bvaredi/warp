@@ -44,7 +44,8 @@
       "mux": {
         "concurrency": -1,
         "enabled": false,
-        "xudpConcurrency": 0
+        "xudpConcurrency": 8,
+        "xudpProxyUDP443": ""
       },
       "protocol": "vless",
       "settings": {
@@ -56,7 +57,7 @@
               {
                 "encryption": "none",
                 "flow": "",
-                "id": "e5905f60-58b8-429f-9109-ff1b3df90f6e",
+                "id": "4aead5ed-e9dd-46d9-ae2e-95b4800d5f5a",
                 "level": 8,
                 "security": "auto"
               }
@@ -71,14 +72,14 @@
           "allowInsecure": false,
           "fingerprint": "",
           "publicKey": "",
-          "serverName": "matin.mardomak.store",
+          "serverName": "usa.mardomak.store",
           "shortId": "",
           "show": false,
           "spiderX": ""
         },
         "wsSettings": {
           "headers": {
-            "Host": "matin.mardomak.store"
+            "Host": "usa.mardomak.store"
           },
           "path": "/argox-vl?ed"
         }
