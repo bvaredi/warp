@@ -1,161 +1,180 @@
 {
-  "log": {
-    "level": "warn",
-    "output": "box.log",
-    "timestamp": true
-  },
   "dns": {
-    "servers": [
-      {
-        "tag": "dns-remote",
-        "address": "tcp://8.8.8.8",
-        "address_resolver": "dns-direct"
-      },
-      {
-        "tag": "dns-direct",
-        "address": "8.8.8.8",
-        "address_resolver": "dns-local",
-        "detour": "direct"
-      },
-      {
-        "tag": "dns-local",
-        "address": "local",
-        "detour": "direct"
-      },
-      {
-        "tag": "dns-block",
-        "address": "rcode://success"
-      }
-    ],
-    "rules": [
-      {
-        "domain": "www.speedtest.net",
-        "server": "dns-direct"
-      }
-    ],
-    "independent_cache": true
-  },
-  "inbounds": [
-    {
-      "type": "mixed",
-      "tag": "mixed-in",
-      "listen": "127.0.0.1",
-      "listen_port": 2334,
-      "sniff": true,
-      "sniff_override_destination": true,
-      "set_system_proxy": true
+    "hosts": {
+      "domain:googleapis.cn": "googleapis.com"
     },
+    "servers": [
+      "https://1.1.1.1/dns-query",
+      {
+        "address": "223.5.5.5",
+        "domains": [
+          "geosite:private",
+          "geosite:category-ir",
+          "domain:ir"
+        ],
+        "expectIPs": [
+          "geoip:cn"
+        ],
+        "port": 53
+      }
+    ]
+  },
+  "fakedns": [
     {
-      "type": "direct",
-      "tag": "dns-in",
-      "listen": "127.0.0.1",
-      "listen_port": 6450,
-      "override_address": "8.8.8.8",
-      "override_port": 53
+      "ipPool": "198.18.0.0/15",
+      "poolSize": 10000
     }
   ],
+  "inbounds": [
+    {
+      "port": 10808,
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "userLevel": 8
+      },
+      "sniffing": {
+        "destOverride": [
+          "http",
+          "tls",
+          "fakedns"
+        ],
+        "enabled": true
+      },
+      "tag": "socks"
+    },
+    {
+      "port": 10809,
+      "protocol": "http",
+      "settings": {
+        "userLevel": 8
+      },
+      "tag": "http"
+    }
+  ],
+  "log": {
+    "loglevel": "warning"
+  },
   "outbounds": [
     {
-      "type": "selector",
-      "tag": "select",
-      "outbounds": [
-        "auto",
-        "USA-VPS-Vl § 0"
-      ],
-      "default": "auto"
-    },
-    {
-      "type": "urltest",
-      "tag": "auto",
-      "outbounds": [
-        "USA-VPS-Vl § 0"
-      ],
-      "url": "http://cp.cloudflare.com/",
-      "interval": "10m0s"
-    },
-    {
-      "type": "vless",
-      "tag": "USA-VPS-Vl § 0",
-      "tls_fragment": {
+      "mux": {
+        "concurrency": 8,
         "enabled": true,
-        "size": "10-30",
-        "sleep": "20-100"
+        "xudpConcurrency": 8,
+        "xudpProxyUDP443": "reject"
       },
-      "server": "www.speedtest.net",
-      "server_port": 443,
-      "uuid": "4aead5ed-e9dd-46d9-ae2e-95b4800d5f5a",
-      "tls": {
-        "enabled": true,
-        "server_name": "usa.mardomak.store",
-        "insecure": true,
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "www.speedtest.net",
+            "port": 443,
+            "users": [
+              {
+                "encryption": "none",
+                "flow": "",
+                "id": "4aead5ed-e9dd-46d9-ae2e-95b4800d5f5a",
+                "level": 8,
+                "security": "auto"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "sockopt": {
+          "dialerProxy": "direct"
+        },
+        "security": "tls",
+        "tlsSettings": {
+          "allowInsecure": false,
+          "alpn": [
+            "h2",
+            "http/1.1"
+          ],
+          "fingerprint": "chrome",
+          "publicKey": "",
+          "serverName": "usa.mardomak.store",
+          "shortId": "",
+          "show": false,
+          "spiderX": ""
+        },
+        "wsSettings": {
+          "headers": {
+            "Host": "usa.mardomak.store"
+          },
+          "path": "/argox-vl?ed=2048"
         }
       },
-      "transport": {
-        "type": "ws",
-        "path": "/argox-vl",
-        "headers": {
-          "Host": "usa.mardomak.store"
-        },
-        "max_early_data": 2048,
-        "early_data_header_name": "Sec-WebSocket-Protocol"
-      },
-      "packet_encoding": "xudp"
+      "tag": "proxy"
     },
     {
-      "type": "dns",
-      "tag": "dns-out"
-    },
-    {
-      "type": "direct",
+      "protocol": "freedom",
       "tag": "direct",
-      "tls_fragment": {}
+      "settings": {
+        "domainStrategy": "AsIs",
+        "fragment": {
+          "packets": "tlshello",
+          "length": "20",
+          "interval": "100"
+        }
+      }
     },
     {
-      "type": "direct",
-      "tag": "bypass",
-      "tls_fragment": {}
-    },
-    {
-      "type": "block",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      },
       "tag": "block"
     }
   ],
-  "route": {
-    "geoip": {
-      "path": "geo-assets/sagernet-sing-geoip-geoip.db"
+  "policy": {
+    "levels": {
+      "8": {
+        "connIdle": 300,
+        "downlinkOnly": 1,
+        "handshake": 4,
+        "uplinkOnly": 1
+      }
     },
-    "geosite": {
-      "path": "geo-assets/sagernet-sing-geosite-geosite.db"
-    },
+    "system": {
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
+    }
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
     "rules": [
       {
-        "inbound": "dns-in",
-        "outbound": "dns-out"
+        "ip": [
+          "223.5.5.5"
+        ],
+        "outboundTag": "direct",
+        "port": "53",
+        "type": "field"
       },
       {
-        "port": 53,
-        "outbound": "dns-out"
+        "domain": [
+          "geosite:private",
+          "geosite:category-ir",
+          "domain:ir"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
       },
       {
-        "clash_mode": "Direct",
-        "outbound": "direct"
-      },
-      {
-        "clash_mode": "Global",
-        "outbound": "select"
+        "ip": [
+          "geoip:private",
+          "geoip:ir"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
       }
-    ],
-    "auto_detect_interface": true,
-    "override_android_vpn": true
+    ]
   },
-  "experimental": {
-    "clash_api": {
-      "external_controller": "127.0.0.1:6756",
-      "store_selected": true,
-      "cache_file": "clash.db"
-    }
-  }
+  "stats": {}
 }
