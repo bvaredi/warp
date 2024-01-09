@@ -1,33 +1,15 @@
-
 {
   "dns": {
     "hosts": {
       "domain:googleapis.cn": "googleapis.com"
     },
     "servers": [
-      "https://1.1.1.1/dns-query",
-      {
-        "address": "223.5.5.5",
-        "domains": [
-          "geosite:private",
-          "geosite:category-ir",
-          "domain:ir"
-        ],
-        "expectIPs": [
-          "geoip:cn"
-        ],
-        "port": 53
-      }
+      "1.1.1.1"
     ]
   },
-  "fakedns": [
-    {
-      "ipPool": "198.18.0.0/15",
-      "poolSize": 10000
-    }
-  ],
   "inbounds": [
     {
+      "listen": "127.0.0.1",
       "port": 10808,
       "protocol": "socks",
       "settings": {
@@ -38,14 +20,14 @@
       "sniffing": {
         "destOverride": [
           "http",
-          "tls",
-          "fakedns"
+          "tls"
         ],
         "enabled": true
       },
       "tag": "socks"
     },
     {
+      "listen": "127.0.0.1",
       "port": 10809,
       "protocol": "http",
       "settings": {
@@ -60,16 +42,16 @@
   "outbounds": [
     {
       "mux": {
-        "concurrency": 8,
-        "enabled": true,
+        "concurrency": -1,
+        "enabled": false,
         "xudpConcurrency": 8,
-        "xudpProxyUDP443": "reject"
+        "xudpProxyUDP443": ""
       },
       "protocol": "vless",
       "settings": {
         "vnext": [
           {
-            "address": "www.speedtest.net",
+            "address": "usa.quasars.ir",
             "port": 2096,
             "users": [
               {
@@ -85,9 +67,6 @@
       },
       "streamSettings": {
         "network": "ws",
-        "sockopt": {
-          "dialerProxy": "direct"
-        },
         "security": "tls",
         "tlsSettings": {
           "allowInsecure": false,
@@ -104,24 +83,17 @@
         },
         "wsSettings": {
           "headers": {
-            "Host": "usa.quasars.ir"
+            "Host": ""
           },
-          "path": "/website?ed=2048"
+          "path": "/website"
         }
       },
       "tag": "proxy"
     },
     {
       "protocol": "freedom",
-      "tag": "direct",
-      "settings": {
-        "domainStrategy": "AsIs",
-        "fragment": {
-          "packets": "tlshello",
-          "length": "10-20",
-          "interval": "30-80"
-        }
-      }
+      "settings": {},
+      "tag": "direct"
     },
     {
       "protocol": "blackhole",
@@ -133,49 +105,17 @@
       "tag": "block"
     }
   ],
-  "policy": {
-    "levels": {
-      "8": {
-        "connIdle": 300,
-        "downlinkOnly": 1,
-        "handshake": 4,
-        "uplinkOnly": 1
-      }
-    },
-    "system": {
-      "statsOutboundUplink": true,
-      "statsOutboundDownlink": true
-    }
-  },
   "routing": {
     "domainStrategy": "IPIfNonMatch",
     "rules": [
       {
         "ip": [
-          "223.5.5.5"
+          "1.1.1.1"
         ],
-        "outboundTag": "direct",
+        "outboundTag": "proxy",
         "port": "53",
-        "type": "field"
-      },
-      {
-        "domain": [
-          "geosite:private",
-          "geosite:category-ir",
-          "domain:ir"
-        ],
-        "outboundTag": "direct",
-        "type": "field"
-      },
-      {
-        "ip": [
-          "geoip:private",
-          "geoip:ir"
-        ],
-        "outboundTag": "direct",
         "type": "field"
       }
     ]
-  },
-  "stats": {}
+  }
 }
